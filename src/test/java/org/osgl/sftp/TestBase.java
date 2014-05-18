@@ -9,7 +9,7 @@ import java.util.Arrays;
 /**
  * Created by luog on 18/05/2014.
  */
-public class TestBase extends Assert {
+public abstract class TestBase extends Assert {
     protected void eq(Object[] a1, Object[] a2) {
         yes(Arrays.equals(a1, a2));
     }
