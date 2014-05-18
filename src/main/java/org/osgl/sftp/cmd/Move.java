@@ -34,7 +34,7 @@ public class Move extends SftpCmd<Void> {
         try {
             ch.rename(source(), destination());
         } catch (SftpException e) {
-            throw new SftpError(e, "Error putting file[%s]", path);
+            throw new SftpError(e, "Error moving file[%s] to [%s]", source, path);
         } finally {
             release(ch);
         }

@@ -50,6 +50,8 @@ public abstract class SftpCmd<T> extends _.F0<T> {
             throw error;
         } catch (SftpResult result) {
             return result.get();
+        } finally {
+            Sftp.clearOneTimeContext();
         }
         return null;
     }

@@ -8,13 +8,15 @@ import org.osgl.sftp.cmd.*;
 import org.osgl.storage.impl.SObject;
 import org.osgl.util.E;
 
-import java.util.Properties;
+import java.io.File;
+import java.io.InputStream;
+import java.util.Map;
 
-public class Sftp {
+public class Sftp implements FTP {
     private SftpConfig config;
     private Session session;
 
-    public Sftp(Properties conf) {
+    public Sftp(Map conf) {
         this(new SftpConfig(conf));
     }
 
@@ -64,7 +66,7 @@ public class Sftp {
         session = createSession();
     }
 
-    void shutdown() {
+    public void shutdown() {
         if (!isActive()) return;
         session.disconnect();
         session = null;
@@ -81,6 +83,18 @@ public class Sftp {
 
     public void put(String path, String content) {
         new Put(path, this, SObject.valueOf(path, content)).apply();
+    }
+
+    public void put(String path, InputStream is) {
+        new Put(path, this, SObject.valueOf(path, is)).apply();
+    }
+
+    public void put(String path, File file) {
+        new Put(path, this, SObject.valueOf(path, file)).apply();
+    }
+
+    public void put(String path, byte[] ba) {
+        new Put(path, this, SObject.valueOf(path, ba)).apply();
     }
 
     public boolean rm(String path) {
@@ -101,6 +115,21 @@ public class Sftp {
 
     public void move(String src, String dst) {
         new Move(src, dst, this).apply();
+    }
+
+    private static final ThreadLocal<String> oneTimeCtx = new ThreadLocal<String>();
+
+    static String oneTimeContext() {
+        return oneTimeCtx.get();
+    }
+
+    static void clearOneTimeContext() {
+        oneTimeCtx.remove();
+    }
+
+    public FTP withContext(String ctx) {
+        oneTimeCtx.set(SftpConfig.regulateContextPath(ctx));
+        return this;
     }
 
 }

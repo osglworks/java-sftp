@@ -45,10 +45,14 @@ public class SftpConfig {
 
         s = getConf(CONF_CONTEXT_PATH, conf);
         if (S.notEmpty(s)) {
-            if (!s.startsWith("/")) s = "/" + s;
-            if (s.endsWith("/")) s = s.substring(0, s.length() - 1);
-            contextPath = s;
+            contextPath = regulateContextPath(s);
         }
+    }
+
+    static String regulateContextPath(String s) {
+        if (!s.startsWith("/")) s = "/" + s;
+        if (s.endsWith("/")) s = s.substring(0, s.length() - 1);
+        return s;
     }
 
     private static String getConf(String key, Map conf) {
@@ -73,6 +77,10 @@ public class SftpConfig {
 
     String ensurePath(String path) {
         if (!path.startsWith("/")) path = "/" + path;
-        return path.startsWith(contextPath) ? path : contextPath + path;
+
+        String ctx = Sftp.oneTimeContext();
+        if (null == ctx) ctx = contextPath;
+
+        return path.startsWith(ctx) ? path : ctx + path;
     }
 }
