@@ -25,7 +25,7 @@ public class Get extends SftpCmd<SObject> {
             ch.get(path, baos);
             throw new SftpResult(SObject.valueOf(path, baos.toByteArray()));
         } catch (SftpException e) {
-            throw new SftpError(e, "Error putting file[%s]", path);
+            throw new SftpError(e, "Error getting file[%s]", path);
         } finally {
             release(ch);
         }

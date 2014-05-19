@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class Sftp implements FTP {
     private SftpConfig config;
-    private Session session;
+    protected Session session;
 
     public Sftp(Map conf) {
         this(new SftpConfig(conf));
@@ -55,14 +55,13 @@ public class Sftp implements FTP {
     }
 
     public ChannelSftp newChannel() throws JSchException {
-        E.illegalStateIf(!isActive(), "Connection pool is not active");
-        ChannelSftp ch = (ChannelSftp) session.openChannel("sftp");
+        ChannelSftp ch = (ChannelSftp) getSession().openChannel("sftp");
         ch.connect();
         return ch;
     }
 
-    void startup() throws JSchException {
-        if (null != session && session.isConnected()) return;
+    synchronized void startup() throws JSchException {
+        if (isActive()) return;
         session = createSession();
     }
 
@@ -73,7 +72,7 @@ public class Sftp implements FTP {
     }
 
     boolean isActive() {
-        return null != session;
+        return null != session && session.isConnected();
     }
 
     public boolean exists(String path) {
@@ -95,6 +94,22 @@ public class Sftp implements FTP {
 
     public void put(String path, byte[] ba) {
         new Put(path, this, SObject.valueOf(path, ba)).apply();
+    }
+
+    public void put(String path, String content, Put.Mode mode) {
+        new Put(path, this, SObject.valueOf(path, content), mode).apply();
+    }
+
+    public void put(String path, InputStream is, Put.Mode mode) {
+        new Put(path, this, SObject.valueOf(path, is), mode).apply();
+    }
+
+    public void put(String path, File file, Put.Mode mode) {
+        new Put(path, this, SObject.valueOf(path, file), mode).apply();
+    }
+
+    public void put(String path, byte[] ba, Put.Mode mode) {
+        new Put(path, this, SObject.valueOf(path, ba), mode).apply();
     }
 
     public boolean rm(String path) {

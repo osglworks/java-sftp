@@ -2,7 +2,10 @@ package org.osgl.sftp;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.osgl.sftp.cmd.Put;
+import org.osgl.sftp.result.SftpError;
 import org.osgl.storage.impl.SObject;
 import org.osgl.util.S;
 
@@ -15,7 +18,7 @@ import static org.osgl.sftp.SftpConfig.*;
  */
 public class SftpTest extends TestBase {
 
-    private Sftp sftp;
+    private TestSftp sftp;
 
     @Before
     public void setup() throws Exception {
@@ -25,7 +28,7 @@ public class SftpTest extends TestBase {
         conf.setProperty(CONF_USERNAME, "osglsftp");
         conf.setProperty(CONF_PASSWORD, "Qsyj3@-4%Fddfse");
         conf.setProperty(CONF_CONTEXT_PATH, "/strongspace/osglsftp/public");
-        sftp = new Sftp(conf);
+        sftp = new TestSftp(conf);
         sftp.startup();
     }
 
@@ -56,6 +59,11 @@ public class SftpTest extends TestBase {
         } finally {
             sftp.rm(path);
         }
+    }
+
+    @Test
+    public void testRemoveNonExisted() {
+        no(sftp.rm("nonexists" + S.random()));
     }
 
     @Test
@@ -117,6 +125,114 @@ public class SftpTest extends TestBase {
                 sftp.mkdir(destPath);
                 try {
                     no(sftp.exists(dest));
+                    sftp.move(src, dest);
+                    no(sftp.exists(src));
+                    yes(sftp.exists(dest));
+                    sftp.rm(dest);
+                } finally {
+                    sftp.rmdir(destPath);
+                }
+            } finally {
+                try {
+                    sftp.rm(src);
+                } catch (RuntimeException e) {
+                    // ignore
+                }
+            }
+        } finally {
+            sftp.rmdir(srcPath);
+        }
+    }
+
+    @Test
+    public void testPutOverwrite() {
+        final String path = "test" + S.random();
+        sftp.put(path, "ABC");
+        try {
+            eq("ABC", sftp.get(path).asString());
+            sftp.put(path, "XYZ");
+            eq("XYZ", sftp.get(path).asString());
+        } finally {
+            sftp.rm(path);
+        }
+    }
+
+    @Test
+    public void testPutAppend() {
+        final String path = "test" + S.random();
+        sftp.put(path, "ABC");
+        try {
+            eq("ABC", sftp.get(path).asString());
+            sftp.put(path, "XYZ", Put.Mode.APPEND);
+            eq("ABCXYZ", sftp.get(path).asString());
+        } finally {
+            sftp.rm(path);
+        }
+    }
+
+    @Test
+    @Ignore("resume is not testable for the moment")
+    public void testPutResume() {
+        final String path = "test" + S.random();
+        sftp.put(path, "ABC");
+        try {
+            eq("ABC", sftp.get(path).asString());
+            sftp.put(path, "XYZ", Put.Mode.RESUME);
+            eq("ABCXYZ", sftp.get(path).asString());
+        } finally {
+            sftp.rm(path);
+        }
+    }
+
+    @Test(expected = SftpError.class)
+    public void testGetNonExisted() {
+        sftp.get("testNonExisted" + S.random());
+    }
+
+    @Test(expected = SftpError.class)
+    public void testMoveNonExisted() {
+        sftp.move("nonExisted" + S.random(), "/abc/test" + S.random());
+    }
+
+    @Test
+    public void testAutoRecoveryOnGet() {
+        sftp.disconnectSession();
+        testGetNonExisted();
+    }
+
+    @Test
+    public void testAutoRecoveryOnPut() {
+        sftp.disconnectSession();
+        testPutOverwrite();
+    }
+
+    @Test
+    public void testAutoRecoveryOnDelete() {
+        sftp.disconnectSession();
+        testRemoveNonExisted();
+    }
+
+    @Test
+    public void testAutoRecoveryOnStat() {
+        sftp.disconnectSession();
+        testFileNotExists();
+    }
+
+    @Test
+    public void AutoRecoveryOnMove() {
+        final String srcPath = "spath" + S.random();
+        final String src = srcPath + "/stest" + S.random();
+        final String destPath = "dtest" + S.random();
+        final String dest = destPath + "/dtest" + S.random();
+
+        sftp.mkdir(srcPath);
+        try {
+            sftp.put(src, "ABC");
+            try {
+                sftp.mkdir(destPath);
+                try {
+                    no(sftp.exists(dest));
+                    sftp.disconnectSession();
                     sftp.move(src, dest);
                     no(sftp.exists(src));
                     yes(sftp.exists(dest));
