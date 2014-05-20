@@ -194,7 +194,7 @@ public class SftpTest extends TestBase {
         sftp.move("nonExisted" + S.random(), "/abc/test" + S.random());
     }
 
-    @Test
+    @Test(expected = SftpError.class)
     public void testAutoRecoveryOnGet() {
         sftp.disconnectSession();
         testGetNonExisted();

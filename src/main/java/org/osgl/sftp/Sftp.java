@@ -12,7 +12,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 
-public class Sftp implements FTP {
+public class Sftp {
     private SftpConfig config;
     protected Session session;
 
@@ -45,7 +45,7 @@ public class Sftp implements FTP {
 
     private static final ThreadLocal<ChannelSftp> current = new ThreadLocal<ChannelSftp>();
 
-    public ChannelSftp channel() throws JSchException {
+    ChannelSftp channel() throws JSchException {
         ChannelSftp ch = current.get();
         if (null == ch || !ch.isConnected()) {
             ch = newChannel();
@@ -54,7 +54,7 @@ public class Sftp implements FTP {
         return ch;
     }
 
-    public ChannelSftp newChannel() throws JSchException {
+    ChannelSftp newChannel() throws JSchException {
         ChannelSftp ch = (ChannelSftp) getSession().openChannel("sftp");
         ch.connect();
         return ch;
@@ -80,6 +80,10 @@ public class Sftp implements FTP {
         return null != attrs;
     }
 
+    public void put(String path, SObject sobj) {
+        new Put(path, this, sobj).apply();
+    }
+
     public void put(String path, String content) {
         new Put(path, this, SObject.valueOf(path, content)).apply();
     }
@@ -94,6 +98,10 @@ public class Sftp implements FTP {
 
     public void put(String path, byte[] ba) {
         new Put(path, this, SObject.valueOf(path, ba)).apply();
+    }
+
+    public void put(String path, SObject sobj, Put.Mode mode) {
+        new Put(path, this, sobj, mode).apply();
     }
 
     public void put(String path, String content, Put.Mode mode) {
@@ -142,7 +150,7 @@ public class Sftp implements FTP {
         oneTimeCtx.remove();
     }
 
-    public FTP withContext(String ctx) {
+    public Sftp withContext(String ctx) {
         oneTimeCtx.set(SftpConfig.regulateContextPath(ctx));
         return this;
     }
