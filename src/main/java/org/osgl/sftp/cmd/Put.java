@@ -7,6 +7,7 @@ import org.osgl.sftp.Sftp;
 import org.osgl.sftp.SftpCmd;
 import org.osgl.sftp.result.SftpError;
 import org.osgl.sftp.result.SftpResult;
+import org.osgl.storage.ISObject;
 import org.osgl.storage.impl.SObject;
 import org.osgl.util.IO;
 
@@ -27,16 +28,24 @@ public class Put extends SftpCmd<Void> {
         }
     }
 
-    private SObject content;
+    private ISObject content;
     private Mode mode;
 
-    public Put(String path, Sftp sftp, SObject content) {
-        this(path, sftp, content, Mode.OVERWRITE);
+    public Put(ISObject content, Sftp sftp) {
+        this(content.getKey(), content, sftp);
     }
 
-    public Put(String path, Sftp sftp, SObject content, Mode mode) {
+    public Put(String path, ISObject content, Sftp sftp) {
+        this(path, content, Mode.OVERWRITE, sftp);
+    }
+
+    public Put(ISObject content, Mode mode, Sftp sftp) {
+        this(content.getKey(), content, mode, sftp);
+    }
+
+    public Put(String path, ISObject content, Mode mode, Sftp sftp) {
         super(path, sftp, false);
-        if (null == content) content = SObject.valueOf("", "");
+        if (null == content) content = SObject.of("");
         this.content = content;
         this.mode = mode;
     }

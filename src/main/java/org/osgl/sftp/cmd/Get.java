@@ -23,7 +23,7 @@ public class Get extends SftpCmd<SObject> {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ch.get(path, baos);
-            throw new SftpResult(SObject.valueOf(path, baos.toByteArray()));
+            throw new SftpResult(SObject.of(path, baos.toByteArray()));
         } catch (SftpException e) {
             throw new SftpError(e, "Error getting file[%s]", path);
         } finally {

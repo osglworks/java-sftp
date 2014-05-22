@@ -5,6 +5,7 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpATTRS;
 import org.osgl.sftp.cmd.*;
+import org.osgl.storage.ISObject;
 import org.osgl.storage.impl.SObject;
 import org.osgl.util.E;
 
@@ -80,44 +81,48 @@ public class Sftp {
         return null != attrs;
     }
 
-    public void put(String path, SObject sobj) {
-        new Put(path, this, sobj).apply();
+    public void put(ISObject sobj) {
+        new Put(sobj, this).apply();
+    }
+
+    public void put(String path, ISObject sobj) {
+        new Put(path, sobj, this).apply();
     }
 
     public void put(String path, String content) {
-        new Put(path, this, SObject.valueOf(path, content)).apply();
+        new Put(SObject.of(path, content), this).apply();
     }
 
     public void put(String path, InputStream is) {
-        new Put(path, this, SObject.valueOf(path, is)).apply();
+        new Put(SObject.of(path, is), this).apply();
     }
 
     public void put(String path, File file) {
-        new Put(path, this, SObject.valueOf(path, file)).apply();
+        new Put(SObject.of(path, file), this).apply();
     }
 
     public void put(String path, byte[] ba) {
-        new Put(path, this, SObject.valueOf(path, ba)).apply();
+        new Put(SObject.of(path, ba), this).apply();
     }
 
-    public void put(String path, SObject sobj, Put.Mode mode) {
-        new Put(path, this, sobj, mode).apply();
+    public void put(String path, ISObject sobj, Put.Mode mode) {
+        new Put(path, sobj, mode, this).apply();
     }
 
     public void put(String path, String content, Put.Mode mode) {
-        new Put(path, this, SObject.valueOf(path, content), mode).apply();
+        new Put(SObject.of(path, content), mode, this).apply();
     }
 
     public void put(String path, InputStream is, Put.Mode mode) {
-        new Put(path, this, SObject.valueOf(path, is), mode).apply();
+        new Put(SObject.of(path, is), mode, this).apply();
     }
 
     public void put(String path, File file, Put.Mode mode) {
-        new Put(path, this, SObject.valueOf(path, file), mode).apply();
+        new Put(SObject.of(path, file), mode, this).apply();
     }
 
     public void put(String path, byte[] ba, Put.Mode mode) {
-        new Put(path, this, SObject.valueOf(path, ba), mode).apply();
+        new Put(SObject.of(path, ba), mode, this).apply();
     }
 
     public boolean rm(String path) {
