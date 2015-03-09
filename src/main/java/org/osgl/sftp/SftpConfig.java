@@ -34,17 +34,17 @@ public class SftpConfig {
         E.invalidConfigurationIf(S.anyEmpty(host, username), "missing configuration of host or username or password");
 
         String s = getConf(CONF_PORT, conf);
-        if (S.notEmpty(s)) {
+        if (S.notBlank(s)) {
             port = Integer.parseInt(s);
         }
 
         s = getConf(CONF_BYPASS_HOST_KEY_CHECKING, conf);
-        if (S.notEmpty(s)) {
+        if (S.notBlank(s)) {
             byPassHostKeyChecking = Boolean.parseBoolean(s);
         }
 
         s = getConf(CONF_CONTEXT_PATH, conf);
-        if (S.notEmpty(s)) {
+        if (S.notBlank(s)) {
             contextPath = regulateContextPath(s);
         }
     }
@@ -63,7 +63,7 @@ public class SftpConfig {
     Session createSession() throws JSchException {
         JSch jSch = new JSch();
         Session session = jSch.getSession(username, host, port);
-        if (S.notEmpty(password)) {
+        if (S.notBlank(password)) {
             session.setPassword(password);
         }
         if (byPassHostKeyChecking) {

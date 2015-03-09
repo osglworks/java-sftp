@@ -16,7 +16,7 @@ public class Move extends SftpCmd<Void> {
 
     public Move(String src, String dest,  Sftp sftp) {
         super(dest, sftp);
-        E.illegalArgumentIf(S.empty(src));
+        E.illegalArgumentIf(S.blank(src));
         source = ensurePath(src);
     }
 
